@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart'; // Import for CupertinoIcons
 import 'package:stashwise/pages/register.dart';
 
 class FirstPage extends StatelessWidget {
@@ -7,19 +8,19 @@ class FirstPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // StashWise logo taking half of the screen
-            Expanded(
+            // StashWise logo taking up the first half of the screen
+            const Expanded(
               flex: 1,
               child: Center(
                 child: Text(
                   'StashWise',
-                  style: const TextStyle(
-                    fontFamily:
-                        'Lobster Two', // Make sure Lobster Two is configured in pubspec.yaml
+                  style: TextStyle(
+                    fontFamily: 'Lobster Two', // Make sure Lobster Two is configured in pubspec.yaml
                     fontSize: 48.0,
                     fontWeight: FontWeight.w800,
                   ),
@@ -27,72 +28,89 @@ class FirstPage extends StatelessWidget {
               ),
             ),
 
-            // Large buttons in the lower half
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center, // Center buttons vertically
-                  children: [
-                    // Button 1: Create New Account
-                    SizedBox(
-                      width: double.infinity, // Full-width button
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Register()),
-                          ); // Define the action
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          backgroundColor: Color(0xFF1F62FF), // Large button
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Text(
-                          'Create New Account',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontFamily: 'Open Sans',
-                            fontWeight: FontWeight.w400,
-                          ),
+            // Padding for buttons aligned at the bottom
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Keep the buttons at the bottom
+                children: [
+                  // Button 1: Create New Account
+                  SizedBox(
+                    width: double.infinity, // Full-width button
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Register()),
+                        ); // Navigate to Register Page
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        backgroundColor: const Color(0xFF1F62FF), // Button color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 20), // Spacing between buttons
-
-                    // Button 2: Restore from Backup File
-                    SizedBox(
-                      width: double.infinity, // Full-width button
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Define the action
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          backgroundColor: Color(0xFF1F62FF), // Large button
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Create New Account',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontFamily: 'Open Sans',
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Restore from Backup File',
-                          style: TextStyle(
-                            fontSize: 18,
+                          SizedBox(width: 10), // Spacing between text and icon
+                          Icon(
+                            CupertinoIcons.chevron_forward, // iOS-style chevron icon
                             color: Colors.white,
-                            fontWeight: FontWeight.w400,
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 18), // Spacing between buttons
+
+                  // Button 2: Restore from Backup File
+                  SizedBox(
+                    width: double.infinity, // Full-width button
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Restore action goes here
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        backgroundColor: const Color(0xFF1F62FF), // Button color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Restore from Backup File',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontFamily: 'Open Sans',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          SizedBox(width: 10), // Spacing between text and icon
+                          Icon(
+                            CupertinoIcons.chevron_forward, // iOS-style chevron icon
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

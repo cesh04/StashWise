@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
-import 'package:stashwise/pages/set_pin_page.dart';
+import 'package:stashwise/pages/set_currency.dart';
 
-class Register extends StatelessWidget {
-  const Register({super.key});
+class SetPinPage extends StatelessWidget {
+  const SetPinPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class Register extends StatelessWidget {
               children: [
                 // Massive Heading broken into 3 lines
                 const Text(
-                  'Create\nYour\nProfile',
+                  'Set\nYour\nPIN Code',
                   style: TextStyle(
                     fontFamily: 'Open Sans',
                     fontSize: 48.0,
@@ -29,20 +29,20 @@ class Register extends StatelessWidget {
                 ),
                 const SizedBox(height: 110),
 
-                // Name Input Field
+                // PIN Input Field
                 TextField(
                   decoration: InputDecoration(
-                    labelText: 'Name',
+                    labelText: 'Enter 4-digit PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -52,23 +52,26 @@ class Register extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                   ),
+                  keyboardType: TextInputType.number,
+                  obscureText: true, // Hide the PIN input
+                  maxLength: 4, // Limit to 4 digits
                 ),
                 const SizedBox(height: 20),
 
-                // DOB Input Field
+                // Confirm PIN Input Field
                 TextField(
                   decoration: InputDecoration(
-                    labelText: 'Date of Birth',
+                    labelText: 'Confirm 4-digit PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -78,34 +81,9 @@ class Register extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  keyboardType: TextInputType.datetime,
-                ),
-                const SizedBox(height: 20),
-
-                // Email Input Field
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: const TextStyle(fontFamily: 'Open Sans'),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1.5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.number,
+                  obscureText: true, // Hide the confirmation PIN input
+                  maxLength: 4, // Limit to 4 digits
                 ),
                 const SizedBox(height: 250),
               ],
@@ -120,8 +98,13 @@ class Register extends StatelessWidget {
           width: double.infinity, // Full width
           child: ElevatedButton(
             onPressed: () {
-              // Handle registration logic here
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SetPinPage()));
+              // Handle PIN set logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CurrencySelectionPage(),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF), // Blue button
@@ -134,7 +117,7 @@ class Register extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
                 Text(
-                  'Create Account',
+                  'Set PIN',
                   style: TextStyle(
                       fontSize: 18,
                       color: Colors.white,
