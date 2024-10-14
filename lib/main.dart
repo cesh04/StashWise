@@ -11,6 +11,7 @@ class StashWise extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'StashWise',
       home: FirstPage(),
     );
