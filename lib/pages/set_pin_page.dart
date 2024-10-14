@@ -44,7 +44,7 @@ class _SetPinPageState extends State<SetPinPage> {
       // Navigate to the HomePage after successful insertion
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const Home()),
       );
     } else {
       _showSnackbar("Failed to create account. Name already exists.");

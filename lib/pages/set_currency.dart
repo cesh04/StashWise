@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
+import 'package:stashwise/navbar.dart';
 
 class CurrencySelectionPage extends StatefulWidget {
   const CurrencySelectionPage({super.key});
@@ -92,6 +93,7 @@ class _CurrencySelectionPageState extends State<CurrencySelectionPage> {
           child: ElevatedButton(
             onPressed: () {
               // Handle confirmation or next step
+              Navigator.push(context, MaterialPageRoute(builder: (context) => NavBar()));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF), // Blue button
@@ -100,9 +102,9 @@ class _CurrencySelectionPageState extends State<CurrencySelectionPage> {
                 borderRadius: BorderRadius.circular(15),
               ),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Text(
                   'Continue',
                   style: TextStyle(
