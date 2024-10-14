@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:stashwise/pages/first.dart';
+import 'package:stashwise/pages/home.dart';
+import 'package:stashwise/pages/register.dart';
+import 'package:stashwise/utils/database_helper.dart';
 
-void main(){
-  runApp(const StashWise());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DatabaseHelper db = DatabaseHelper();
+
+  bool userExists = await db.doesUserExist();
+
+  runApp(MyApp(userExists: userExists));
 }
 
-class StashWise extends StatelessWidget {
-  const StashWise({super.key});
+class MyApp extends StatelessWidget {
+  final bool userExists;
+
+  const MyApp({super.key, required this.userExists});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'StashWise',
-      home: FirstPage(),
+      home: userExists ? HomePage() : Register(),
     );
   }
 }

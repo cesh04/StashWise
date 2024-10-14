@@ -1,9 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
+import 'package:flutter/cupertino.dart';
 import 'package:stashwise/pages/set_pin_page.dart';
+import 'package:stashwise/models/stashwise.dart';
+import 'package:stashwise/utils/database_helper.dart';
 
-class Register extends StatelessWidget {
+class Register extends StatefulWidget {
   const Register({super.key});
+
+  _RegisterState createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
+
+  void _createAccount() async {
+    String name = _nameController.text;
+    String dateOfBirth = _dobController.text;
+    String email = _emailController.text;
+
+    if (name.isEmpty || dateOfBirth.isEmpty || email.isEmpty) {
+      _showSnackbar("Please fill all fields.");
+      return;
+    }
+
+    Stashwise stashwise = Stashwise(name, dateOfBirth, email, "");
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SetPinPage(stashwise: stashwise)),
+    );
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +52,6 @@ class Register extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Massive Heading broken into 3 lines
                 const Text(
                   'Create\nYour\nProfile',
                   style: TextStyle(
@@ -31,18 +66,19 @@ class Register extends StatelessWidget {
 
                 // Name Input Field
                 TextField(
+                  controller: _nameController,
                   decoration: InputDecoration(
                     labelText: 'Name',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -57,18 +93,19 @@ class Register extends StatelessWidget {
 
                 // DOB Input Field
                 TextField(
+                  controller: _dobController,
                   decoration: InputDecoration(
-                    labelText: 'Date of Birth',
+                    labelText: 'Date of Birth (DD/MM/YYYY)',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -84,18 +121,19 @@ class Register extends StatelessWidget {
 
                 // Email Input Field
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -117,14 +155,11 @@ class Register extends StatelessWidget {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          width: double.infinity, // Full width
+          width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              // Handle registration logic here
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SetPinPage()));
-            },
+            onPressed: _createAccount, // Handle registration logic here
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F62FF), // Blue button
+              backgroundColor: const Color(0xFF1F62FF),
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -142,7 +177,7 @@ class Register extends StatelessWidget {
                 ),
                 SizedBox(width: 10),
                 Icon(
-                  CupertinoIcons.chevron_forward, // iOS-style trailing icon
+                  CupertinoIcons.chevron_forward,
                   color: Colors.white,
                 ),
               ],

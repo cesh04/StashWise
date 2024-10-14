@@ -20,7 +20,7 @@ class FirstPage extends StatelessWidget {
                 child: Text(
                   'StashWise',
                   style: TextStyle(
-                    fontFamily: 'Lobster Two', // Make sure Lobster Two is configured in pubspec.yaml
+                    fontFamily: 'Lobster Two',
                     fontSize: 48.0,
                     fontWeight: FontWeight.w800,
                   ),
@@ -32,7 +32,8 @@ class FirstPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Keep the buttons at the bottom
+                mainAxisSize:
+                    MainAxisSize.min, // Keep the buttons at the bottom
                 children: [
                   // Button 1: Create New Account
                   SizedBox(
@@ -46,7 +47,8 @@ class FirstPage extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        backgroundColor: const Color(0xFF1F62FF), // Button color
+                        backgroundColor:
+                            const Color(0xFF1F62FF), // Button color
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
@@ -63,9 +65,9 @@ class FirstPage extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          SizedBox(width: 10), // Spacing between text and icon
+                          SizedBox(width: 10),
                           Icon(
-                            CupertinoIcons.chevron_forward, // iOS-style chevron icon
+                            CupertinoIcons.chevron_forward,
                             color: Colors.white,
                           ),
                         ],
@@ -84,7 +86,8 @@ class FirstPage extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        backgroundColor: const Color(0xFF1F62FF), // Button color
+                        backgroundColor:
+                            const Color(0xFF1F62FF), // Button color
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
@@ -103,7 +106,7 @@ class FirstPage extends StatelessWidget {
                           ),
                           SizedBox(width: 10), // Spacing between text and icon
                           Icon(
-                            CupertinoIcons.chevron_forward, // iOS-style chevron icon
+                            CupertinoIcons.chevron_forward,
                             color: Colors.white,
                           ),
                         ],

@@ -1,9 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
-import 'package:stashwise/pages/set_currency.dart';
+import 'package:stashwise/pages/home.dart'; // Import the HomePage
+import 'package:stashwise/models/stashwise.dart';
+import 'package:stashwise/utils/database_helper.dart';
 
-class SetPinPage extends StatelessWidget {
-  const SetPinPage({super.key});
+class SetPinPage extends StatefulWidget {
+  final Stashwise stashwise;
+
+  const SetPinPage(
+      {super.key, required this.stashwise}); // Receive the Stashwise object
+
+  @override
+  _SetPinPageState createState() => _SetPinPageState();
+}
+
+class _SetPinPageState extends State<SetPinPage> {
+  final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _confirmPinController = TextEditingController();
+
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
+
+  void _setPin() async {
+    String pin = _pinController.text;
+    String confirmPin = _confirmPinController.text;
+
+    if (pin.length != 4 || confirmPin.length != 4) {
+      _showSnackbar("PIN must be 4 digits.");
+      return;
+    }
+
+    if (pin != confirmPin) {
+      _showSnackbar("PINs do not match.");
+      return;
+    }
+
+    // Update the Stashwise object with the new PIN
+    widget.stashwise.pin =
+        pin; // Assuming you have a setter for pin in Stashwise
+
+    // Insert the details into the database
+    int result = await _databaseHelper.insertDetails(widget.stashwise);
+    if (result != -1) {
+      // Navigate to the HomePage after successful insertion
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      _showSnackbar("Failed to create account. Name already exists.");
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +82,7 @@ class SetPinPage extends StatelessWidget {
 
                 // PIN Input Field
                 TextField(
+                  controller: _pinController,
                   decoration: InputDecoration(
                     labelText: 'Enter 4-digit PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -38,16 +90,6 @@ class SetPinPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                       borderSide:
                           const BorderSide(color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1.5),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -60,6 +102,7 @@ class SetPinPage extends StatelessWidget {
 
                 // Confirm PIN Input Field
                 TextField(
+                  controller: _confirmPinController,
                   decoration: InputDecoration(
                     labelText: 'Confirm 4-digit PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -67,16 +110,6 @@ class SetPinPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                       borderSide:
                           const BorderSide(color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1F62FF), width: 1.5),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -97,15 +130,7 @@ class SetPinPage extends StatelessWidget {
         child: SizedBox(
           width: double.infinity, // Full width
           child: ElevatedButton(
-            onPressed: () {
-              // Handle PIN set logic here
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CurrencySelectionPage(),
-                ),
-              );
-            },
+            onPressed: _setPin,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF), // Blue button
               padding: const EdgeInsets.symmetric(vertical: 18),
