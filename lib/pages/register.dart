@@ -7,6 +7,7 @@ import 'package:stashwise/utils/database_helper.dart';
 class Register extends StatefulWidget {
   const Register({super.key});
 
+  @override
   _RegisterState createState() => _RegisterState();
 }
 

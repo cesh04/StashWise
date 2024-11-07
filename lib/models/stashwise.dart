@@ -16,12 +16,12 @@ class Stashwise {
 
   set name(String newName) {
     if (newName.length <= 255) {
-      this._name = newName;
+      _name = newName;
     }
   }
 
   set pin(String newPin) {
-    this._pin = newPin;
+    _pin = newPin;
   }
 
   void setDateOfBirth(String newDateOfBirth, BuildContext context) {
@@ -30,7 +30,7 @@ class Stashwise {
     DateTime now = DateTime.now();
 
     if (dob.isBefore(now)) {
-      this._dateOfBirth = newDateOfBirth;
+      _dateOfBirth = newDateOfBirth;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -41,7 +41,7 @@ class Stashwise {
   }
 
   set email(String newEmail) {
-    this._email = newEmail;
+    _email = newEmail;
   }
 
   Map<String, dynamic> toMap() {
@@ -55,9 +55,9 @@ class Stashwise {
   }
 
   Stashwise.fromMapObject(Map<String, dynamic> map) {
-    this._name = map['name'];
-    this._dateOfBirth = map['date_of_birth'];
-    this._email = map['email'];
-    this._pin = map['pin'];
+    _name = map['name'];
+    _dateOfBirth = map['date_of_birth'];
+    _email = map['email'];
+    _pin = map['pin'];
   }
 }

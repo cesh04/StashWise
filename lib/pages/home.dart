@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stashwise/pages/new_transaction.dart';
+import 'package:stashwise/pages/transaction_history.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -23,6 +25,8 @@ class Home extends StatelessWidget {
                   color: Color(0xFF080708),
                   fontSize: 50.0,
                   fontWeight: FontWeight.w800,
+                  height: 1.2,
+                  letterSpacing: -0.5,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -136,7 +140,12 @@ class Home extends StatelessWidget {
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios,
                         color: Color(0xFF1F62FF)),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => TransactionHistoryPage())
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   ListTile(
@@ -177,7 +186,9 @@ class Home extends StatelessWidget {
       // Adding the Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add action for the FAB here
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NewTransactionPage()));
         },
         backgroundColor: const Color(0xFF1F62FF), // Matching theme color
         child: const Icon(

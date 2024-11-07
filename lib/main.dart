@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stashwise/pages/home.dart';
+import 'package:stashwise/navbar.dart';
 import 'package:stashwise/pages/register.dart';
 import 'package:stashwise/utils/database_helper.dart';
 
@@ -9,20 +9,20 @@ void main() async {
 
   bool userExists = await db.doesUserExist();
 
-  runApp(MyApp(userExists: userExists));
+  runApp(StashWise(userExists: userExists));
 }
 
-class MyApp extends StatelessWidget {
+class StashWise extends StatelessWidget {
   final bool userExists;
 
-  const MyApp({super.key, required this.userExists});
+  const StashWise({super.key, required this.userExists});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'StashWise',
-      home: userExists ? Home() : Register(),
+      home: userExists ? NavBar() : Register(),
     );
   }
 }
