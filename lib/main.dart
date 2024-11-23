@@ -5,6 +5,7 @@ import 'package:stashwise/utils/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   DatabaseHelper db = DatabaseHelper();
 
   bool userExists = await db.doesUserExist();

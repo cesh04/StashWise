@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
-import 'package:stashwise/pages/home.dart'; // Import the HomePage
 import 'package:stashwise/models/stashwise.dart';
+import 'package:stashwise/pages/set_currency.dart';
 import 'package:stashwise/utils/database_helper.dart';
 
 class SetPinPage extends StatefulWidget {
-  final Stashwise stashwise;
+  final int userId; // Accept user ID from Register page
 
   const SetPinPage(
-      {super.key, required this.stashwise}); // Receive the Stashwise object
+      {super.key, required this.userId, required Stashwise stashwise});
 
   @override
   _SetPinPageState createState() => _SetPinPageState();
@@ -34,20 +34,16 @@ class _SetPinPageState extends State<SetPinPage> {
       return;
     }
 
-    // Update the Stashwise object with the new PIN
-    widget.stashwise.pin =
-        pin; // Assuming you have a setter for pin in Stashwise
+    try {
+      // Update PIN for the user with the given userId
+      await _databaseHelper.updatePin(widget.userId, pin);
 
-    // Insert the details into the database
-    int result = await _databaseHelper.insertDetails(widget.stashwise);
-    if (result != -1) {
-      // Navigate to the HomePage after successful insertion
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Home()),
+        MaterialPageRoute(builder: (context) => const CurrencySelectionPage()),
       );
-    } else {
-      _showSnackbar("Failed to create account. Name already exists.");
+    } catch (e) {
+      _showSnackbar("Failed to set PIN. Please try again.");
     }
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 class NewTransactionPage extends StatefulWidget {
   const NewTransactionPage({super.key});
@@ -14,6 +16,35 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
   String selectedCategory = 'Select Category';
   double cashBalance = 350.0;
   double bankBalance = 7500.0;
+
+  List<String> categories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final db = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    final List<Map<String, dynamic>> categoryList =
+        await db.query('Categories');
+
+    setState(() {
+      categories = categoryList
+          .map((category) => category['category_name'] as String)
+          .toList();
+    });
+
+    if (!categories.contains('Select Category')) {
+      setState(() {
+        categories.insert(0, 'Select Category');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +72,10 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
 
                 // Account Toggle (Cash/Bank)
                 ToggleButtons(
-                  isSelected: [selectedAccount == 'Cash', selectedAccount == 'Bank'],
+                  isSelected: [
+                    selectedAccount == 'Cash',
+                    selectedAccount == 'Bank'
+                  ],
                   onPressed: (index) {
                     setState(() {
                       selectedAccount = index == 0 ? 'Cash' : 'Bank';
@@ -50,14 +84,17 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                   borderRadius: BorderRadius.circular(15),
                   selectedColor: Colors.white,
                   fillColor: const Color(0xFF1F62FF),
-                  textStyle: const TextStyle(fontFamily: 'Open Sans', fontSize: 18),
+                  textStyle:
+                      const TextStyle(fontFamily: 'Open Sans', fontSize: 18),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 8.0),
                       child: Text('Cash (\u20B9$cashBalance)'),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 8.0),
                       child: Text('Bank (\u20B9$bankBalance)'),
                     ),
                   ],
@@ -71,15 +108,18 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1.5),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF1F62FF), width: 1.5),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -98,15 +138,18 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                           labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                            borderSide: const BorderSide(
+                                color: Color(0xFF1F62FF), width: 1),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                            borderSide: const BorderSide(
+                                color: Color(0xFF1F62FF), width: 1),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1.5),
+                            borderSide: const BorderSide(
+                                color: Color(0xFF1F62FF), width: 1.5),
                           ),
                           filled: true,
                           fillColor: Colors.white,
@@ -125,19 +168,22 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                       borderRadius: BorderRadius.circular(15),
                       selectedColor: Colors.white,
                       fillColor: const Color(0xFF1F62FF),
-                      textStyle: const TextStyle(fontFamily: 'Open Sans', fontSize: 18),
+                      textStyle: const TextStyle(
+                          fontFamily: 'Open Sans', fontSize: 18),
                       children: [
                         Tooltip(
                           message: 'Credited',
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                             child: const Text('+'), // Credit
                           ),
                         ),
                         Tooltip(
                           message: 'Debited',
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                             child: const Text('-'), // Debit
                           ),
                         ),
@@ -151,24 +197,29 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Category',
-                    labelStyle: const TextStyle(fontFamily: 'Open Sans', color: Colors.grey),
+                    labelStyle: const TextStyle(
+                        fontFamily: 'Open Sans', color: Colors.grey),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1.5),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF1F62FF), width: 1.5),
                     ),
                     filled: true,
                     fillColor: Colors.white,
                   ),
                   value: selectedCategory,
-                  icon: const Icon(CupertinoIcons.chevron_down, color: Color(0xFF1F62FF)),
+                  icon: const Icon(CupertinoIcons.chevron_down,
+                      color: Color(0xFF1F62FF)),
                   onChanged: (String? newValue) {
                     setState(() {
                       selectedCategory = newValue!;
@@ -176,17 +227,12 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                   },
                   style: const TextStyle(
                     fontFamily: 'Open Sans',
-                    color: Colors.grey, // Match dropdown text color with the design
+                    color: Colors
+                        .grey, // Match dropdown text color with the design
                     fontSize: 18,
                   ),
-                  items: <String>[
-                    'Select Category',
-                    'Food',
-                    'Entertainment',
-                    'Utilities',
-                    'Shopping',
-                    'Travel'
-                  ].map<DropdownMenuItem<String>>((String value) {
+                  items:
+                      categories.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -202,15 +248,18 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF1F62FF), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Color(0xFF1F62FF), width: 1.5),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF1F62FF), width: 1.5),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -235,7 +284,8 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
           color: Colors.white,
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Align FAB to bottom right
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat, // Align FAB to bottom right
     );
   }
 }

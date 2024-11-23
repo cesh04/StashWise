@@ -1,14 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:stashwise/pages/new_transaction.dart';
 import 'package:stashwise/pages/transaction_history.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    var name = 'Eshaan'; // Your name
+  _HomeState createState() => _HomeState();
+}
 
+class _HomeState extends State<Home> {
+  String name = 'User';
+  String greeting = 'Hello';
+  final TextEditingController _categoryController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserDetails();
+    _updateGreeting();
+  }
+
+  Future<void> _fetchUserDetails() async {
+    final database = openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    final db = await database;
+    final List<Map<String, dynamic>> personalDetails =
+        await db.query('personal_details');
+
+    if (personalDetails.isNotEmpty) {
+      setState(() {
+        name = personalDetails[0]['name'];
+      });
+    }
+  }
+
+  void _updateGreeting() {
+    final hour = DateTime.now().hour;
+
+    setState(() {
+      if (hour < 12) {
+        greeting = 'Good Morning';
+      } else if (hour < 4) {
+        greeting = 'Good Afternoon';
+      } else {
+        greeting = 'Good Evening';
+      }
+    });
+  }
+
+  void _showAddCategoryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add Categories'),
+          content: TextField(
+            controller: _categoryController,
+            decoration: const InputDecoration(hintText: 'Enter category name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final category = _categoryController.text.trim();
+
+                if (category.isNotEmpty) {
+                  await _addCategoryToDatabase(category);
+                  setState(() {
+                    _categoryController.clear();
+                  });
+                }
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addCategoryToDatabase(String category) async {
+    final database = openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    final db = await database;
+    await db.insert(
+      'Categories',
+      {'category_name': category},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         color: Colors.white,
@@ -19,11 +116,11 @@ class Home extends StatelessWidget {
             Container(
               margin: const EdgeInsets.all(16.0),
               child: Text(
-                'Good Morning, $name',
+                '$greeting, $name',
                 style: const TextStyle(
                   fontFamily: 'Open Sans',
                   color: Color(0xFF080708),
-                  fontSize: 50.0,
+                  fontSize: 40.0,
                   fontWeight: FontWeight.w800,
                   height: 1.2,
                   letterSpacing: -0.5,
@@ -142,9 +239,9 @@ class Home extends StatelessWidget {
                         color: Color(0xFF1F62FF)),
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => TransactionHistoryPage())
-                      );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TransactionHistoryPage()));
                     },
                   ),
                   const SizedBox(height: 8),
@@ -175,7 +272,11 @@ class Home extends StatelessWidget {
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios,
                         color: Color(0xFF1F62FF)),
-                    onTap: () {},
+                    onTap: () {
+                      _showAddCategoryDialog(
+                        context,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -186,9 +287,8 @@ class Home extends StatelessWidget {
       // Adding the Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewTransactionPage()));
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => NewTransactionPage()));
         },
         backgroundColor: const Color(0xFF1F62FF), // Matching theme color
         child: const Icon(

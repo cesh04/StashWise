@@ -18,6 +18,12 @@ class _RegisterState extends State<Register> {
 
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
+  bool _isValidEmail(String email) {
+    final emailRegEx =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegEx.hasMatch(email);
+  }
+
   void _createAccount() async {
     String name = _nameController.text;
     String dateOfBirth = _dobController.text;
@@ -27,13 +33,28 @@ class _RegisterState extends State<Register> {
       _showSnackbar("Please fill all fields.");
       return;
     }
+    if (!_isValidEmail(email)) {
+      _showSnackbar("Please enter a valid email address with '@' and '.'");
+      return;
+    }
 
+    // Create a new Stashwise object with empty PIN
     Stashwise stashwise = Stashwise(name, dateOfBirth, email, "");
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SetPinPage(stashwise: stashwise)),
-    );
+    try {
+      int userId = await _databaseHelper.insertUser(stashwise);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SetPinPage(
+                  userId: userId,
+                  stashwise: stashwise,
+                )),
+      );
+    } catch (e) {
+      _showSnackbar("Failed to create account. Please try again.");
+    }
   }
 
   void _showSnackbar(String message) {
