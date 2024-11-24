@@ -14,6 +14,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String name = 'User';
   String greeting = 'Hello';
+
+  double cashBalance = 0.0;
+  double bankBalance = 0.0;
+
   final TextEditingController _categoryController = TextEditingController();
 
   @override
@@ -21,6 +25,7 @@ class _HomeState extends State<Home> {
     super.initState();
     _fetchUserDetails();
     _updateGreeting();
+    _fetchBalances();
   }
 
   Future<void> _fetchUserDetails() async {
@@ -104,6 +109,32 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Future<void> _fetchBalances() async {
+    final db = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    // Query for the latest cash and bank balances
+    final List<Map<String, dynamic>> balanceQuery = await db.query(
+      'transactions',
+      columns: ['cash_balance', 'bank_balance'],
+      orderBy: 'transaction_id DESC', // Fetch the latest transaction
+      limit: 1,
+    );
+
+    setState(() {
+      // If a transaction is found, update the balances
+      if (balanceQuery.isNotEmpty) {
+        cashBalance = balanceQuery.first['cash_balance'] ?? 0.0;
+        bankBalance = balanceQuery.first['bank_balance'] ?? 0.0;
+      } else {
+        // Set to 0.0 if no transactions exist yet
+        cashBalance = 0.0;
+        bankBalance = 0.0;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,9 +181,9 @@ class _HomeState extends State<Home> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              '\$350',
+                              '\u20B9$cashBalance',
                               style: TextStyle(
                                 fontFamily: 'Open Sans',
                                 color: Color(0xFFE6E8E6),
@@ -194,9 +225,9 @@ class _HomeState extends State<Home> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              '\$7500',
+                              '\u20B9$bankBalance',
                               style: TextStyle(
                                 fontFamily: 'Open Sans',
                                 color: Color(0xFFE6E8E6),
@@ -286,10 +317,19 @@ class _HomeState extends State<Home> {
       ),
       // Adding the Floating Action Button
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => NewTransactionPage()));
+        onPressed: () async {
+          // Navigate to NewTransactionPage and wait for a result
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NewTransactionPage()),
+          );
+
+          // Refresh balances if a new transaction was added
+          if (result == true) {
+            _fetchBalances();
+          }
         },
+
         backgroundColor: const Color(0xFF1F62FF), // Matching theme color
         child: const Icon(
           Icons.add,
