@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:stashwise/pages/about.dart';
+import 'package:stashwise/pages/profile.dart';
+import 'package:stashwise/pages/update_pin.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -41,13 +44,16 @@ class SettingsPage extends StatelessWidget {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F62FF)),
                       onTap: () {
-                        // Handle navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ProfilePage()),
+                        );
                       },
                     ),
                     const SizedBox(height: 8),
                     ListTile(
                       title: const Text(
-                        'PIN',
+                        'Change PIN',
                         style: TextStyle(
                           fontFamily: 'Open Sans',
                           fontSize: 27.0,
@@ -57,7 +63,10 @@ class SettingsPage extends StatelessWidget {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F62FF)),
                       onTap: () {
-                        // Handle navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ChangePinPage()),
+                        );
                       },
                     ),
                     const SizedBox(height: 8),
@@ -89,7 +98,10 @@ class SettingsPage extends StatelessWidget {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F62FF)),
                       onTap: () {
-                        // Handle navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AboutPage()),
+                        );
                       },
                     ),
                   ],
