@@ -14,15 +14,21 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
   String selectedAccount = 'Cash';
   bool isCredit = true;
   String selectedCategory = 'Select Category';
-  double cashBalance = 350.0;
-  double bankBalance = 7500.0;
+  double cashBalance = 0.0;
+  double bankBalance = 0.0;
 
   List<String> categories = [];
+
+  final TextEditingController transactionTitleController =
+      TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadBalances();
   }
 
   Future<void> _loadCategories() async {
@@ -39,11 +45,37 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
           .toList();
     });
 
-    if (!categories.contains('Select Category')) {
+    if (categories.isNotEmpty) {
       setState(() {
-        categories.insert(0, 'Select Category');
+        selectedCategory = categories[0];
       });
     }
+  }
+
+  Future<void> _loadBalances() async {
+    final db = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    // Compute cash balance
+    final List<Map<String, dynamic>> cashQuery = await db.rawQuery(
+        'SELECT SUM(amount) AS total_cash FROM transactions WHERE transaction_type = 0');
+
+    // Compute bank balance
+    final List<Map<String, dynamic>> bankQuery = await db.rawQuery(
+        'SELECT SUM(amount) AS total_bank FROM transactions WHERE transaction_type = 1');
+
+    setState(() {
+      cashBalance =
+          cashQuery.isNotEmpty && cashQuery.first['total_cash'] != null
+              ? cashQuery.first['total_cash'] as double
+              : 0.0;
+
+      bankBalance =
+          bankQuery.isNotEmpty && bankQuery.first['total_bank'] != null
+              ? bankQuery.first['total_bank'] as double
+              : 0.0;
+    });
   }
 
   @override
@@ -103,6 +135,7 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
 
                 // Transaction Title Field
                 TextField(
+                  controller: transactionTitleController,
                   decoration: InputDecoration(
                     labelText: 'Transaction Title',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -132,6 +165,7 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                   children: [
                     Expanded(
                       child: TextField(
+                        controller: amountController,
                         decoration: InputDecoration(
                           labelText: 'Amount',
                           prefixText: '\u20B9 ', // Rupee sign
@@ -274,8 +308,118 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add transaction action
+        onPressed: () async {
+          // Validate fields (example: ensuring no fields are left blank)
+          if (transactionTitleController.text.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text("Please enter a transaction title.")),
+            );
+            return;
+          }
+
+          if (amountController.text.isEmpty ||
+              double.tryParse(amountController.text) == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Please enter a valid amount.")),
+            );
+            return;
+          }
+
+          if (selectedCategory == 'Select Category' ||
+              selectedCategory.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Please select a valid category.")),
+            );
+            return;
+          }
+
+          // Parse the entered amount
+          double? amount = double.tryParse(amountController.text);
+
+          if (amount == null || amount <= 0) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Enter a valid amount.")),
+            );
+            return;
+          }
+
+          // Get transaction type: 1 for Bank, 0 for Cash
+          int transactionType = selectedAccount == 'Bank' ? 1 : 0;
+
+          // Get the current date as transaction date
+          String transactionDate = DateTime.now().toIso8601String();
+
+          // Open the database
+          final db = await openDatabase(
+            join(await getDatabasesPath(), 'fund_management.db'),
+          );
+
+          // Get category_id from the database using selectedCategory
+          final List<Map<String, dynamic>> categoryQuery = await db.query(
+            'Categories',
+            columns: ['category_id'],
+            where: 'category_name = ?',
+            whereArgs: [selectedCategory],
+          );
+
+          if (categoryQuery.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Invalid category selected.")),
+            );
+            return;
+          }
+          int categoryId = categoryQuery.first['category_id'];
+
+          // Retrieve current balance for the selected account
+          final List<Map<String, dynamic>> balanceQuery = await db.query(
+            'transactions',
+            columns: [transactionType == 0 ? 'cash_balance' : 'bank_balance'],
+            orderBy: 'transaction_id DESC', // Get the latest transaction
+            limit: 1,
+          );
+
+          double currentBalance = balanceQuery.isNotEmpty
+              ? balanceQuery.first[transactionType == 0
+                  ? 'cash_balance'
+                  : 'bank_balance'] as double
+              : 0.0;
+
+          // Calculate the new balance
+          double newBalance = isCredit
+              ? currentBalance + amount // Credit adds to balance
+              : currentBalance - amount; // Debit subtracts from balance
+
+          // Insert the transaction into the database
+          await db.insert(
+            'transactions',
+            {
+              'transaction_name': transactionTitleController.text,
+              'category_id': categoryId,
+              'description': descriptionController.text,
+              'amount':
+                  isCredit ? amount : -amount, // Debit amounts are negative
+              'transaction_date': transactionDate,
+              'transaction_type': transactionType,
+              'cash_balance': transactionType == 0
+                  ? newBalance
+                  : currentBalance, // Update cash balance if Cash
+              'bank_balance': transactionType == 1
+                  ? newBalance
+                  : currentBalance, // Update bank balance if Bank
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+          await _loadBalances();
+
+          // Show a success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Transaction added successfully!")),
+          );
+
+          // Optionally navigate back or clear the form
+          Navigator.pop(context, true);
         },
         backgroundColor: const Color(0xFF1F62FF),
         child: const Icon(
@@ -287,5 +431,13 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
       floatingActionButtonLocation:
           FloatingActionButtonLocation.endFloat, // Align FAB to bottom right
     );
+  }
+
+  @override
+  void dispose() {
+    transactionTitleController.dispose();
+    amountController.dispose();
+    descriptionController.dispose();
+    super.dispose();
   }
 }

@@ -66,6 +66,9 @@ class DatabaseHelper {
         $colDescription TEXT,
         $colAmount REAL,
         $colTransactionDate TEXT,
+        transaction_type INTEGER,
+        cash_balance REAL,
+        bank_balance REAL,
         FOREIGN KEY ($colCategoryId) REFERENCES $categoriesTable(category_id)
       )
     ''');
