@@ -76,7 +76,8 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE $categoriesTable (
         category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category_name TEXT
+        category_name TEXT,
+        $colDescription TEXT
       )
     ''');
 
@@ -84,9 +85,12 @@ class DatabaseHelper {
       CREATE TABLE $duesTable (
         due_id INTEGER PRIMARY KEY AUTOINCREMENT,
         due_name TEXT,
+        due_payee_name TEXT,
+        $colCategoryId INTEGER,
         $colAmount REAL,
-        $colDescription TEXT,
-        due_date TEXT
+        due_type INTEGER,
+        due_date TEXT,
+        FOREIGN KEY ($colCategoryId) REFERENCES $categoriesTable(category_id)
       )
     ''');
   }
@@ -110,7 +114,7 @@ class DatabaseHelper {
   Future<bool> doesUserExist() async {
     Database db = await database;
     var result = await db.query(personalDetails);
-    return result.isNotEmpty; // Returns true if any user exists
+    return result.isNotEmpty;
   }
 
   Future<Map<String, dynamic>?> getUserByName(String name) async {
@@ -158,7 +162,6 @@ class DatabaseHelper {
   Future<void> updatePin(int userId, String pin) async {
     final db = await database;
 
-    // Update the pin for the specific user
     int result = await db.update(
       personalDetails,
       {colPin: pin},
@@ -169,6 +172,21 @@ class DatabaseHelper {
     if (result == 0) {
       throw Exception('Failed to set PIN. No matching user found.');
     }
+  }
+
+  Future<void> updateUserProfile(String name, String dob, String email) async {
+    final db = await database;
+
+    await db.update(
+      'personal_details',
+      {
+        'name': name,
+        'date_of_birth': dob,
+        'email': email,
+      },
+      where: 'user_id = ?',
+      whereArgs: [1],
+    );
   }
 
   insertDetails(Map<String, dynamic> map) {}

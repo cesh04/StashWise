@@ -1,17 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:stashwise/utils/database_helper.dart';
 
-
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Pre-existing profile data
-    String name = 'Eshaan';
-    String dob = '04/01/2003';
-    String email = 'heresneal@gmail.com';
+  State<ProfilePage> createState() => _ProfilePageState();
+}
 
+class _ProfilePageState extends State<ProfilePage> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
+  late TextEditingController _nameController;
+  late TextEditingController _dobController;
+  late TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _dobController = TextEditingController();
+    _emailController = TextEditingController();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    List<Map<String, dynamic>> personalDetails =
+        await _dbHelper.getPersonalDetails();
+
+    if (personalDetails.isNotEmpty) {
+      Map<String, dynamic> user = personalDetails.first;
+      setState(() {
+        _nameController.text = user['name'] ?? '';
+        _dobController.text = user['date_of_birth'] ?? '';
+        _emailController.text = user['email'] ?? '';
+      });
+    }
+  }
+
+  Future<void> _updateUserProfile() async {
+    String name = _nameController.text;
+    String dob = _dobController.text;
+    String email = _emailController.text;
+
+    await _dbHelper.updateUserProfile(name, dob, email);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully!')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -34,9 +75,9 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 60),
 
-                // Name Input Field with pre-filled data
+                // Name Input Field
                 TextField(
-                  controller: TextEditingController(text: name),
+                  controller: _nameController,
                   decoration: InputDecoration(
                     labelText: 'Name',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -61,9 +102,9 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Date of Birth Input Field with pre-filled data
+                // Date of Birth Input Field
                 TextField(
-                  controller: TextEditingController(text: dob),
+                  controller: _dobController,
                   decoration: InputDecoration(
                     labelText: 'Date of Birth',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -89,9 +130,9 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Email Input Field with pre-filled data
+                // Email Input Field
                 TextField(
-                  controller: TextEditingController(text: email),
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -121,15 +162,12 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      // Fixed Button at the bottom of the screen
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
           width: double.infinity, // Full width
           child: ElevatedButton(
-            onPressed: () {
-              // Handle update profile logic here
-            },
+            onPressed: _updateUserProfile,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF), // Blue button
               padding: const EdgeInsets.symmetric(vertical: 18),

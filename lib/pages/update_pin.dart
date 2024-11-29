@@ -1,8 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:stashwise/utils/database_helper.dart';
 
-class ChangePinPage extends StatelessWidget {
+class ChangePinPage extends StatefulWidget {
   const ChangePinPage({super.key});
+
+  @override
+  State<ChangePinPage> createState() => _ChangePinPageState();
+}
+
+class _ChangePinPageState extends State<ChangePinPage> {
+  final TextEditingController _currentPinController = TextEditingController();
+  final TextEditingController _newPinController = TextEditingController();
+  final TextEditingController _confirmPinController = TextEditingController();
+
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
+  void _updatePin() async {
+    String currentPin = _currentPinController.text.trim();
+    String newPin = _newPinController.text.trim();
+    String confirmPin = _confirmPinController.text.trim();
+
+    if (currentPin.isEmpty || newPin.isEmpty || confirmPin.isEmpty) {
+      _showMessage('All fields are required!');
+      return;
+    }
+
+    List<Map<String, dynamic>> userDetailsList =
+        await _dbHelper.getPersonalDetails();
+    Map<String, dynamic>? userDetails =
+        userDetailsList.isNotEmpty ? userDetailsList.first : null;
+    if (userDetails == null || userDetails['pin'] != currentPin) {
+      _showMessage('Current PIN is incorrect!');
+      return;
+    }
+
+    if (newPin != confirmPin) {
+      _showMessage('New PIN and Confirm PIN do not match!');
+      return;
+    }
+
+    try {
+      await _dbHelper.updatePin(userDetails['user_id'], newPin);
+      _showMessage('PIN updated successfully!', success: true);
+    } catch (e) {
+      _showMessage('Failed to update PIN. Please try again.');
+    }
+  }
+
+  void _showMessage(String message, {bool success = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +83,7 @@ class ChangePinPage extends StatelessWidget {
 
                 // Current PIN Input Field
                 TextField(
+                  controller: _currentPinController,
                   decoration: InputDecoration(
                     labelText: 'Current PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -59,6 +113,7 @@ class ChangePinPage extends StatelessWidget {
 
                 // New PIN Input Field
                 TextField(
+                  controller: _newPinController,
                   decoration: InputDecoration(
                     labelText: 'New PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -88,6 +143,7 @@ class ChangePinPage extends StatelessWidget {
 
                 // Confirm New PIN Input Field
                 TextField(
+                  controller: _confirmPinController,
                   decoration: InputDecoration(
                     labelText: 'Confirm New PIN',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -119,16 +175,12 @@ class ChangePinPage extends StatelessWidget {
           ),
         ),
       ),
-
-      // Fixed Button at the bottom of the screen
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              // Handle update PIN logic here
-            },
+            onPressed: _updatePin,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF),
               padding: const EdgeInsets.symmetric(vertical: 18),

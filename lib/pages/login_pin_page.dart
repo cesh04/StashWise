@@ -1,11 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; // Importing CupertinoIcons for iOS-style icons
+import 'package:flutter/cupertino.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:stashwise/navbar.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
+  Future<String?> _fetchStoredPIN() async {
+    try {
+      final database = await openDatabase(
+        join(await getDatabasesPath(), 'fund_management.db'),
+      );
+
+      final List<Map<String, dynamic>> result =
+          await database.query('personal_details', limit: 1);
+
+      if (result.isNotEmpty) {
+        return result.first['pin'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> _validatePIN(BuildContext context, String enteredPIN) async {
+    final storedPIN = await _fetchStoredPIN();
+
+    if (storedPIN == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('No PIN found. Please set up your account.')),
+      );
+      return;
+    }
+
+    if (enteredPIN == storedPIN) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const NavBar()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wrong PIN, Please try again')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _pinController = TextEditingController();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -15,26 +62,26 @@ class LoginPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // StashWise Logo with Lobster Two Font
+                // StashWise Logo
                 const Center(
                   child: Text(
                     'StashWise',
                     style: TextStyle(
                       fontFamily: 'Lobster Two',
-                      fontSize: 32.0, // Smaller logo size
+                      fontSize: 32.0,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                     ),
                   ),
                 ),
-                const SizedBox(height: 50), // Space between logo and PIN field
+                const SizedBox(height: 50),
 
-                // Heading "Enter Your PIN" broken into 2 lines
+                // Heading
                 const Text(
                   'Enter\nYour\nPIN',
                   style: TextStyle(
                     fontFamily: 'Open Sans',
-                    fontSize: 48.0, // Same font size as in previous pages
+                    fontSize: 48.0,
                     fontWeight: FontWeight.w800,
                     color: Colors.black,
                   ),
@@ -42,10 +89,10 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 80),
 
-                // PIN Input Field (Large and focused)
+                // PIN Input Field
                 SizedBox(
-                   // Adjust width for a larger touch area
                   child: TextField(
+                    controller: _pinController,
                     decoration: InputDecoration(
                       labelText: 'PIN',
                       labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -70,32 +117,35 @@ class LoginPage extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     obscureText: true, // Hide the PIN input
                     maxLength: 4, // Limit to 4 digits
-                    autofocus: true, // Auto-focus for easier PIN entry
-                    onChanged: (value) {
-                      if (value.length == 4) {
-                        // Auto-submit once 4 digits are entered
-                        
-                      }
-                    },
                   ),
                 ),
-                const SizedBox(height: 250), // Adjust spacing to keep it centered
+                const SizedBox(height: 250),
               ],
             ),
           ),
         ),
       ),
-      // Login Button at the bottom (optional)
+
+      // Login Button
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
-          width: double.infinity, // Full width
+          width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              // Handle login logic here
+            onPressed: () async {
+              final enteredPIN = _pinController.text.trim();
+              if (enteredPIN.length == 4) {
+                // Validate the entered PIN
+                await _validatePIN(context, enteredPIN);
+              } else {
+                // Show error if the PIN is not 4 digits long
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a 4-digit PIN')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F62FF), // Blue button
+              backgroundColor: const Color(0xFF1F62FF),
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -113,7 +163,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 SizedBox(width: 10),
                 Icon(
-                  CupertinoIcons.chevron_forward, // iOS-style trailing icon
+                  CupertinoIcons.chevron_forward,
                   color: Colors.white,
                 ),
               ],

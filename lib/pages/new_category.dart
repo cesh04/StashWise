@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
+@override
 class NewCategoryPage extends StatelessWidget {
-  const NewCategoryPage({super.key});
+  NewCategoryPage({super.key});
+
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  Future<void> _addCategoryToDatabase(
+      String category, String description) async {
+    final database = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    final db = database;
+
+    await db.insert(
+      'Categories',
+      {
+        'category_name': category,
+        'description': description,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +54,7 @@ class NewCategoryPage extends StatelessWidget {
 
                 // Title Input Field
                 TextField(
+                  controller: _categoryController,
                   decoration: InputDecoration(
                     labelText: 'Title',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -56,6 +81,7 @@ class NewCategoryPage extends StatelessWidget {
 
                 // Description Input Field
                 TextField(
+                  controller: _descriptionController,
                   decoration: InputDecoration(
                     labelText: 'Description',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -77,22 +103,32 @@ class NewCategoryPage extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  maxLines: 4, // Allows multiline input
+                  maxLines: 4,
                 ),
-                const SizedBox(height: 250), // Spacer before the button
+                const SizedBox(height: 250),
               ],
             ),
           ),
         ),
       ),
-      // Fixed Button at the bottom of the screen
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(
           width: double.infinity, // Full width
           child: ElevatedButton(
-            onPressed: () {
-              // Logic to handle submission of new category
+            onPressed: () async {
+              String category = _categoryController.text.trim();
+              String description = _descriptionController.text.trim();
+
+              if (category.isNotEmpty) {
+                await _addCategoryToDatabase(category, description);
+                Navigator.pop(context, true);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Category name cannot be empty')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F62FF), // Blue button

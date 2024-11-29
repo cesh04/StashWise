@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; // Import for CupertinoIcons
+import 'package:flutter/cupertino.dart';
 import 'package:stashwise/pages/register.dart';
 
 class FirstPage extends StatelessWidget {
@@ -28,12 +28,10 @@ class FirstPage extends StatelessWidget {
               ),
             ),
 
-            // Padding for buttons aligned at the bottom
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisSize:
-                    MainAxisSize.min, // Keep the buttons at the bottom
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Button 1: Create New Account
                   SizedBox(
@@ -43,7 +41,7 @@ class FirstPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => Register()),
-                        ); // Navigate to Register Page
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),

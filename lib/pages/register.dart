@@ -38,7 +38,6 @@ class _RegisterState extends State<Register> {
       return;
     }
 
-    // Create a new Stashwise object with empty PIN
     Stashwise stashwise = Stashwise(name, dateOfBirth, email, "");
 
     try {

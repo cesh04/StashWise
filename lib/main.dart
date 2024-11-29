@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stashwise/navbar.dart';
-import 'package:stashwise/pages/register.dart';
+import 'package:stashwise/pages/first.dart';
+import 'package:stashwise/pages/login_pin_page.dart';
 import 'package:stashwise/utils/database_helper.dart';
 
 void main() async {
@@ -23,7 +23,7 @@ class StashWise extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'StashWise',
-      home: userExists ? NavBar() : Register(),
+      home: userExists ? LoginPage() : FirstPage(),
     );
   }
 }

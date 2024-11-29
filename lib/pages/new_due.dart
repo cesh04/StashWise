@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 class NewDuePage extends StatefulWidget {
   const NewDuePage({super.key});
@@ -13,8 +15,55 @@ class _NewDuePageState extends State<NewDuePage> {
   final TextEditingController _toFromController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _dueDateController = TextEditingController();
-  String? _category;
-  String _toFromType = 'To'; // Default to 'To'
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  List<String> categories = [];
+  String selectedCategory = 'Select Category';
+  String _toFromType = 'To';
+
+  Future<void> _addDueToDatabase(
+      String title, String toFrom, double amount, String dueDate) async {
+    final database = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    int dueType = (toFrom == 'To') ? 1 : 0;
+
+    await database.insert(
+      'Dues',
+      {
+        'due_name': title,
+        'due_payee_name': toFrom,
+        'amount': amount,
+        'due_type': dueType,
+        'due_date': dueDate,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> _loadCategories() async {
+    final db = await openDatabase(
+      join(await getDatabasesPath(), 'fund_management.db'),
+    );
+
+    final List<Map<String, dynamic>> categoryList =
+        await db.query('Categories');
+
+    setState(() {
+      categories = ['Select Category']
+          .followedBy(categoryList
+              .map((category) => category['category_name'] as String))
+          .toList();
+
+      selectedCategory = 'Select Category';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,20 +124,12 @@ class _NewDuePageState extends State<NewDuePage> {
                       flex: 1,
                       child: DropdownButtonFormField<String>(
                         value: _toFromType,
-                        items: ['To', 'From']
-                            .map(
-                              (type) => DropdownMenuItem<String>(
-                                value: type,
-                                child: Text(
-                                  type,
-                                  style: const TextStyle(
-                                    fontFamily: 'Open Sans',
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                        items: ['To', 'From'].map((type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          );
+                        }).toList(),
                         decoration: InputDecoration(
                           labelText: 'Type',
                           labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -125,7 +166,8 @@ class _NewDuePageState extends State<NewDuePage> {
                       child: TextField(
                         controller: _toFromController,
                         decoration: InputDecoration(
-                          labelText: 'Enter ${_toFromType == "To" ? "Recipient" : "Payer"}',
+                          labelText:
+                              'Enter ${_toFromType == "To" ? "Recipient" : "Payer"}',
                           labelStyle: const TextStyle(fontFamily: 'Open Sans'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -209,21 +251,6 @@ class _NewDuePageState extends State<NewDuePage> {
 
                 // Category Dropdown
                 DropdownButtonFormField<String>(
-                  value: _category,
-                  items: ['Housing', 'Utilities', 'Income']
-                      .map(
-                        (category) => DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(
-                            category,
-                            style: const TextStyle(
-                              fontFamily: 'Open Sans',
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
                   decoration: InputDecoration(
                     labelText: 'Category (Optional)',
                     labelStyle: const TextStyle(fontFamily: 'Open Sans'),
@@ -245,32 +272,75 @@ class _NewDuePageState extends State<NewDuePage> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (value) {
+                  onChanged: (String? newValue) {
                     setState(() {
-                      _category = value;
+                      selectedCategory = newValue!;
                     });
                   },
+                  style: const TextStyle(
+                    fontFamily: 'Open Sans',
+                    color: Colors
+                        .grey, // Match dropdown text color with the design
+                    fontSize: 18,
+                  ),
+                  items:
+                      categories.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
+
+                // Add Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_titleController.text.isEmpty ||
+                          _toFromController.text.isEmpty ||
+                          _amountController.text.isEmpty ||
+                          _dueDateController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please fill in all fields.'),
+                          ),
+                        );
+                        return;
+                      }
+                      await _addDueToDatabase(
+                        _titleController.text,
+                        _toFromType,
+                        double.parse(_amountController.text),
+                        _dueDateController.text,
+                        //_category,
+                      );
+                      Navigator.pop(context, true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F62FF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.all(16.0),
+                    ),
+                    child: const Text(
+                      'Add Due',
+                      style: TextStyle(
+                        fontFamily: 'Open Sans',
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ),
-
-      // Floating Action Button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Save new due logic
-        },
-        backgroundColor: const Color(0xFF1F62FF),
-        child: const Icon(
-          Icons.check,
-          size: 36.0,
-          color: Colors.white,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

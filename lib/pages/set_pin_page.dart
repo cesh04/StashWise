@@ -35,7 +35,6 @@ class _SetPinPageState extends State<SetPinPage> {
     }
 
     try {
-      // Update PIN for the user with the given userId
       await _databaseHelper.updatePin(widget.userId, pin);
 
       Navigator.pushReplacement(

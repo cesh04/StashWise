@@ -5,7 +5,9 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
-  const TransactionHistoryPage({super.key});
+  final String selectedCategory;
+
+  const TransactionHistoryPage({super.key, required this.selectedCategory});
 
   @override
   _TransactionHistoryPageState createState() => _TransactionHistoryPageState();
@@ -18,23 +20,22 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   List<Map<String, dynamic>> transactions = [];
   List<Map<String, dynamic>> filteredTransactions = [];
   List<String> categories = [];
-  Map<String, String> categoryNames = {}; // To store category names by id
+  Map<String, String> categoryNames = {};
 
   @override
   void initState() {
     super.initState();
-    _loadCategories(); // Load categories
-    _loadTransactions(); // Load transactions
+    _loadCategories();
+    _loadTransactions();
   }
 
-  // Load categories from the database
   Future<void> _loadCategories() async {
     final db = await openDatabase(
       join(await getDatabasesPath(), 'fund_management.db'),
     );
 
     final List<Map<String, dynamic>> categoryList =
-        await db.query('categories'); // Assuming 'categories' is the table name
+        await db.query('categories');
 
     setState(() {
       categories = ['All'] +
@@ -48,31 +49,39 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     });
   }
 
-  // Load transactions from the database based on filters
   Future<void> _loadTransactions() async {
     final db = await openDatabase(
       join(await getDatabasesPath(), 'fund_management.db'),
     );
 
-    // Build the query based on the selected filters
     String query = '''
       SELECT t.*, c.category_name 
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.category_id
-      ORDER BY t.transaction_date DESC
     ''';
 
-    // Apply filters for type and category
+    List<String> conditions = [];
+    List<dynamic> arguments = [];
+
     if (selectedCategory != null && selectedCategory != 'All') {
-      query = query + ' WHERE t.category_id = ?';
+      conditions.add('t.category_id = ?');
+      arguments.add(selectedCategory);
     }
 
-    final List<Map<String, dynamic>> transactionList = await db.rawQuery(
-      query,
-      selectedCategory != null && selectedCategory != 'All'
-          ? [selectedCategory]
-          : [],
-    );
+    if (selectedType != null) {
+      int typeValue = selectedType == 'Cash' ? 0 : 1;
+      conditions.add('t.transaction_type = ?');
+      arguments.add(typeValue);
+    }
+
+    if (conditions.isNotEmpty) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY t.transaction_date DESC';
+
+    final List<Map<String, dynamic>> transactionList =
+        await db.rawQuery(query, arguments);
 
     setState(() {
       transactions = transactionList;
@@ -80,16 +89,14 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     });
   }
 
-  // Method to handle new transaction
   Future<void> _addNewTransaction() async {
     final newTransactionAdded = await Navigator.push(
       context as BuildContext,
       MaterialPageRoute(builder: (context) => const NewTransactionPage()),
     );
 
-    // If a new transaction was added, reload the transactions
     if (newTransactionAdded == true) {
-      _loadTransactions(); // Reload transactions after adding a new one
+      _loadTransactions();
     }
   }
 
@@ -159,7 +166,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                         setState(() {
                           selectedType = value == 'All' ? null : value;
                         });
-                        _loadTransactions(); // Reload transactions when type is selected
+                        _loadTransactions();
                       },
                     ),
                     // Category Filter Dropdown
@@ -202,7 +209,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 selectedCategory =
                                     value == 'All' ? null : value;
                               });
-                              _loadTransactions(); // Reload transactions when category is selected
+                              _loadTransactions();
                             },
                           ),
                   ],
@@ -264,10 +271,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       ),
       // Floating Action Button
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => NewTransactionPage()));
-        },
+        onPressed: _addNewTransaction,
         backgroundColor: const Color(0xFF1F62FF),
         child: const Icon(
           Icons.add,

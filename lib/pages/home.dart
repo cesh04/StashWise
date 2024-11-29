@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stashwise/pages/categories.dart';
-import 'package:stashwise/pages/new_category.dart';
 import 'package:stashwise/pages/new_transaction.dart';
 import 'package:stashwise/pages/transaction_history.dart';
 import 'package:sqflite/sqflite.dart';
@@ -21,7 +20,7 @@ class _HomeState extends State<Home> {
   double cashBalance = 0.0;
   double bankBalance = 0.0;
 
-  final TextEditingController _categoryController = TextEditingController();
+  get category => null;
 
   @override
   void initState() {
@@ -61,80 +60,29 @@ class _HomeState extends State<Home> {
     });
   }
 
-  /*void _showAddCategoryDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add Categories'),
-          content: TextField(
-            controller: _categoryController,
-            decoration: const InputDecoration(hintText: 'Enter category name'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final category = _categoryController.text.trim();
-
-                if (category.isNotEmpty) {
-                  await _addCategoryToDatabase(category);
-                  setState(() {
-                    _categoryController.clear();
-                  });
-                }
-
-                Navigator.of(context).pop();
-              },
-              child: const Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _addCategoryToDatabase(String category) async {
-    final database = openDatabase(
-      join(await getDatabasesPath(), 'fund_management.db'),
-    );
-
-    final db = await database;
-    await db.insert(
-      'Categories',
-      {'category_name': category},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  } */
-
   Future<void> _fetchBalances() async {
     final db = await openDatabase(
       join(await getDatabasesPath(), 'fund_management.db'),
     );
 
-    // Query for the latest cash and bank balances
-    final List<Map<String, dynamic>> balanceQuery = await db.query(
-      'transactions',
-      columns: ['cash_balance', 'bank_balance'],
-      orderBy: 'transaction_id DESC', // Fetch the latest transaction
-      limit: 1,
-    );
+    // Compute cash balance
+    final List<Map<String, dynamic>> cashQuery = await db.rawQuery(
+        'SELECT SUM(amount) AS total_cash FROM transactions WHERE transaction_type = 0');
+
+    // Compute bank balance
+    final List<Map<String, dynamic>> bankQuery = await db.rawQuery(
+        'SELECT SUM(amount) AS total_bank FROM transactions WHERE transaction_type = 1');
 
     setState(() {
-      // If a transaction is found, update the balances
-      if (balanceQuery.isNotEmpty) {
-        cashBalance = balanceQuery.first['cash_balance'] ?? 0.0;
-        bankBalance = balanceQuery.first['bank_balance'] ?? 0.0;
-      } else {
-        // Set to 0.0 if no transactions exist yet
-        cashBalance = 0.0;
-        bankBalance = 0.0;
-      }
+      cashBalance =
+          cashQuery.isNotEmpty && cashQuery.first['total_cash'] != null
+              ? cashQuery.first['total_cash'] as double
+              : 0.0;
+
+      bankBalance =
+          bankQuery.isNotEmpty && bankQuery.first['total_bank'] != null
+              ? bankQuery.first['total_bank'] as double
+              : 0.0;
     });
   }
 
@@ -275,7 +223,9 @@ class _HomeState extends State<Home> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => TransactionHistoryPage()));
+                              builder: (context) => TransactionHistoryPage(
+                                    selectedCategory: category['category_name'],
+                                  )));
                     },
                   ),
                   const SizedBox(height: 8),
@@ -325,19 +275,16 @@ class _HomeState extends State<Home> {
       // Adding the Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Navigate to NewTransactionPage and wait for a result
           final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const NewTransactionPage()),
           );
 
-          // Refresh balances if a new transaction was added
           if (result == true) {
             _fetchBalances();
           }
         },
-
-        backgroundColor: const Color(0xFF1F62FF), // Matching theme color
+        backgroundColor: const Color(0xFF1F62FF),
         child: const Icon(
           Icons.add,
           size: 36.0, // Slightly larger icon size for prominence

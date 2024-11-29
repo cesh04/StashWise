@@ -57,11 +57,9 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
       join(await getDatabasesPath(), 'fund_management.db'),
     );
 
-    // Compute cash balance
     final List<Map<String, dynamic>> cashQuery = await db.rawQuery(
         'SELECT SUM(amount) AS total_cash FROM transactions WHERE transaction_type = 0');
 
-    // Compute bank balance
     final List<Map<String, dynamic>> bankQuery = await db.rawQuery(
         'SELECT SUM(amount) AS total_bank FROM transactions WHERE transaction_type = 1');
 
@@ -309,7 +307,6 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Validate fields (example: ensuring no fields are left blank)
           if (transactionTitleController.text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -334,7 +331,6 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
             return;
           }
 
-          // Parse the entered amount
           double? amount = double.tryParse(amountController.text);
 
           if (amount == null || amount <= 0) {
@@ -343,19 +339,14 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
             );
             return;
           }
-
-          // Get transaction type: 1 for Bank, 0 for Cash
           int transactionType = selectedAccount == 'Bank' ? 1 : 0;
 
-          // Get the current date as transaction date
           String transactionDate = DateTime.now().toIso8601String();
 
-          // Open the database
           final db = await openDatabase(
             join(await getDatabasesPath(), 'fund_management.db'),
           );
 
-          // Get category_id from the database using selectedCategory
           final List<Map<String, dynamic>> categoryQuery = await db.query(
             'Categories',
             columns: ['category_id'],
@@ -371,7 +362,6 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
           }
           int categoryId = categoryQuery.first['category_id'];
 
-          // Retrieve current balance for the selected account
           final List<Map<String, dynamic>> balanceQuery = await db.query(
             'transactions',
             columns: [transactionType == 0 ? 'cash_balance' : 'bank_balance'],
@@ -385,40 +375,32 @@ class _NewTransactionPageState extends State<NewTransactionPage> {
                   : 'bank_balance'] as double
               : 0.0;
 
-          // Calculate the new balance
-          double newBalance = isCredit
-              ? currentBalance + amount // Credit adds to balance
-              : currentBalance - amount; // Debit subtracts from balance
+          double newBalance =
+              isCredit ? currentBalance + amount : currentBalance - amount;
 
-          // Insert the transaction into the database
           await db.insert(
             'transactions',
             {
               'transaction_name': transactionTitleController.text,
               'category_id': categoryId,
               'description': descriptionController.text,
-              'amount':
-                  isCredit ? amount : -amount, // Debit amounts are negative
+              'amount': isCredit ? amount : -amount,
               'transaction_date': transactionDate,
               'transaction_type': transactionType,
-              'cash_balance': transactionType == 0
-                  ? newBalance
-                  : currentBalance, // Update cash balance if Cash
-              'bank_balance': transactionType == 1
-                  ? newBalance
-                  : currentBalance, // Update bank balance if Bank
+              'cash_balance':
+                  transactionType == 0 ? newBalance : currentBalance,
+              'bank_balance':
+                  transactionType == 1 ? newBalance : currentBalance,
             },
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
 
           await _loadBalances();
 
-          // Show a success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Transaction added successfully!")),
           );
 
-          // Optionally navigate back or clear the form
           Navigator.pop(context, true);
         },
         backgroundColor: const Color(0xFF1F62FF),
